@@ -1,0 +1,416 @@
+// Market Mod
+// Version: 1.4
+// Commands: "!market" in chat
+// Required: BOTH eventscripts AND es tools
+
+block config
+{
+	es_xset market_freeguns 0
+}
+
+block load
+{
+	es echo Market Mod loading...
+	es_xset marketmod_version "1.4"
+	es_makepublic marketmod_version
+
+	es_xset market_rounds 0
+	es_xset market_gun 0
+	es_xset market_price 0
+	es_xset marker_user 0
+	es_xset market_slot 0
+
+	es_doblock marketmod/createmenus
+	es_doblock marketmod/config
+
+	es_msg #green [MM] Market Mod is now active.
+}
+
+event player_say
+{
+	if (event_var(text) == "!market") do
+	{
+		if (event_var(es_userdead) == 0) do
+		{
+			es popup send MarketMenu event_var(userid)
+		}
+		else do
+		{
+			es_tell event_var(userid) #green [MM] Dead people have no use for guns...
+		}
+	}
+}
+
+event round_start
+{
+	if (server_var(market_rounds) == 3) do
+	{
+		es_msg #green [MM] Type !market to buy weapons.
+		es_math market_rounds = 0
+	}
+	else do
+	{
+		es_math market_rounds + 1
+	}
+}
+
+block createmenus
+{
+	popup create MenuPistols
+	popup addline MenuPistols "Market Mod"
+	popup addline MenuPistols "-------------------"
+	popup addline MenuPistols "->1. Glock"
+	popup addline MenuPistols "->2. USP"
+	popup addline MenuPistols "->3. P228"
+	popup addline MenuPistols "->4. Deagle"
+	popup addline MenuPistols "->5. Dual Elites"
+	popup addline MenuPistols "->6. Five-Seven"
+	popup addline MenuPistols "-------------------"
+	popup addline MenuPistols "->9. Back"
+	popup addline MenuPistols "->0. Exit"
+	
+	popup menuselect MenuPistols marketmod/PistolBuy
+	
+	popup create MenuShotguns
+	popup addline MenuShotguns "Market Mod"
+	popup addline MenuShotguns "-------------------"
+	popup addline MenuShotguns "->1. Pump Shotgun"
+	popup addline MenuShotguns "->2. Auto Shotgun"
+	popup addline MenuShotguns "-------------------"
+	popup addline MenuShotguns "->9. Back"
+	popup addline MenuShotguns "->0. Exit"
+	
+	popup menuselect MenuShotguns marketmod/ShotgunBuy
+	
+	popup create MenuSMGs
+	popup addline MenuSMGs "Market Mod"
+	popup addline MenuSMGs "-------------------"
+	popup addline MenuSMGs "->1. Mac10"
+	popup addline MenuSMGs "->2. TMP"
+	popup addline MenuSMGs "->3. MP5"
+	popup addline MenuSMGs "->4. UMP45"
+	popup addline MenuSMGs "->5. P90"
+	popup addline MenuSMGs "-------------------"
+	popup addline MenuSMGs "->9. Back"
+	popup addline MenuSMGs "->0. Exit"
+	
+	popup menuselect MenuSMGs marketmod/SmgBuy
+	
+	popup create MenuRifles
+	popup addline MenuRifles "Market Mod"
+	popup addline MenuRifles "-------------------"
+	popup addline MenuRifles "->1. Galil"
+	popup addline MenuRifles "->2. FAMAS"
+	popup addline MenuRifles "->3. AK-47"
+	popup addline MenuRifles "->4. M4A1"
+	popup addline MenuRifles "->5. SG552"
+	popup addline MenuRifles "->6. AUG"
+	popup addline MenuRifles "-------------------"
+	popup addline MenuRifles "->9. Back"
+	popup addline MenuRifles "->0. Exit"
+	
+	popup menuselect MenuRifles marketmod/RifleBuy
+	
+	popup create MenuSnipers
+	popup addline MenuSnipers "Market Mod"
+	popup addline MenuSnipers "-------------------"
+	popup addline MenuSnipers "->1. Scout"
+	popup addline MenuSnipers "->2. AWP"
+	popup addline MenuSnipers "->3. SG550"
+	popup addline MenuSnipers "->4. G3SG1"
+	popup addline MenuSnipers "-------------------"
+	popup addline MenuSnipers "->9. Back"
+	popup addline MenuSnipers "->0. Exit"
+	
+	popup menuselect MenuSnipers marketmod/SniperBuy
+	
+	popup create MenuMG
+	popup addline MenuMG "Market Mod"
+	popup addline MenuMG "-------------------"
+	popup addline MenuMG "->1. M249"
+	popup addline MenuMG "-------------------"
+	popup addline MenuMG "->9. Back"
+	popup addline MenuMG "->0. Exit"
+	
+	popup menuselect MenuMG marketmod/MgBuy
+	
+	popup create MarketMenu
+	popup addline MarketMenu "Market Mod"
+	popup addline MarketMenu "-------------------"
+	popup addline MarketMenu "->1. Pistols"
+	popup addline MarketMenu "->2. Shotguns"
+	popup addline MarketMenu "->3. SMGs"
+	popup addline MarketMenu "->4. Rifles"
+	popup addline MarketMenu "->5. Sniper Rifles"
+	popup addline MarketMenu "->6. Machine Guns"
+	popup addline MarketMenu "-------------------"
+	popup addline MarketMenu "->0. Exit"
+	
+	popup submenu MarketMenu 1 MenuPistols
+	popup submenu MarketMenu 2 MenuShotguns
+	popup submenu MarketMenu 3 MenuSMGs
+	popup submenu MarketMenu 4 MenuRifles
+	popup submenu MarketMenu 5 MenuSnipers
+	popup submenu MarketMenu 6 MenuMG
+
+}
+
+block PistolBuy
+{
+	es_xset market_slot 2
+	if (server_var(_popup_choice) == 1) do
+	{	
+		es_xset market_price 400
+		es_xsetinfo market_gun "weapon_glock"
+		es_xsetinfo market_gun_name "Glock"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 2) do
+	{
+		es_xset market_price 500
+		es_xsetinfo market_gun "weapon_usp"
+		es_xsetinfo market_gun_name "H&K USP"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 3) do
+	{
+		es_xset market_price 600
+		es_xsetinfo market_gun "weapon_p228"
+		es_xsetinfo market_gun_name "P228"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 4) do
+	{
+		es_xset market_price 650
+		es_xsetinfo market_gun "weapon_deagle"
+		es_xsetinfo market_gun_name "Desert Eagle"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 5) do
+	{
+		es_xset market_price 800
+		es_xsetinfo market_gun "weapon_elite"
+		es_xsetinfo market_gun_name "Elites"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 6) do
+	{
+		es_xset market_price 800
+		es_xsetinfo market_gun "weapon_fiveseven"
+		es_xsetinfo market_gun_name "FN Five-seveN"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block ShotgunBuy
+{
+	es_xset market_slot 1
+	if (server_var(_popup_choice) == 1) do
+	{
+
+		es_xset market_price 1700
+		es_xsetinfo market_gun "weapon_m3"
+		es_xsetinfo market_gun_name "Benelli M3"
+		es_doblock marketmod/BuyGun
+	}
+	
+	if (server_var(_popup_choice) == 2) do
+	{
+		es_xset market_price 3000
+		es_xsetinfo market_gun "weapon_xm1014"
+		es_xsetinfo market_gun_name "XM1014 Auto Shotgun"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block SmgBuy
+{
+	es_xset market_slot 1
+	if (server_var(_popup_choice) == 1) do
+	{
+		es_xset market_price 1400
+		es_xsetinfo market_gun "weapon_mac10"
+		es_xsetinfo market_gun_name "Ingram MAC-10"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 2) do
+	{
+		es_xset market_price 1250
+		es_xsetinfo market_gun "weapon_tmp"
+		es_xsetinfo market_gun_name "Steyr TMP"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 3) do
+	{
+		es_xset market_price 1500
+		es_xsetinfo market_gun "weapon_mp5navy"
+		es_xsetinfo market_gun_name "H&K MP5"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 4) do
+	{
+		es_xset market_price 1700
+		es_xsetinfo market_gun "weapon_ump45"
+		es_xsetinfo market_gun_name "H&K UMP45"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 5) do
+	{
+		es_xset market_price 2350
+		es_xsetinfo market_gun "weapon_p90"
+		es_xsetinfo market_gun_name "FN P90"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block RifleBuy
+{
+	es_xset market_slot 1
+	if (server_var(_popup_choice) == 1) do
+	{
+		es_xset market_price 2000
+		es_xsetinfo market_gun "weapon_galil"
+		es_xsetinfo market_gun_name "IMI Galil"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 2) do
+	{
+		es_xset market_price 2250
+		es_xsetinfo market_gun "weapon_famas"
+		es_xsetinfo market_gun_name "FAMAS"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 3) do
+	{
+		es_xset market_price 2500
+		es_xsetinfo market_gun "weapon_ak47"
+		es_xsetinfo market_gun_name "Kalashnikov"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 4) do
+	{
+		es_xset market_price 3100
+		es_xsetinfo market_gun "weapon_m4a1"
+		es_xsetinfo market_gun_name "Colt M4A1"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 5) do
+	{
+		es_xset market_price 3500
+		es_xsetinfo market_gun "weapon_sg552"
+		es_xsetinfo market_gun_name "SG552"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 6) do
+	{
+		es_xset market_price 3500
+		es_xsetinfo market_gun "weapon_aug"
+		es_xsetinfo market_gun_name "Steyr AUG"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block SniperBuy
+{
+	es_xset market_slot 1
+	if (server_var(_popup_choice) == 1) do
+	{
+		es_xset market_price 2750
+		es_xsetinfo market_gun "weapon_scout"
+		es_xsetinfo market_gun_name "Steyr Scout"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 2) do
+	{
+		es_xset market_price 4750
+		es_xsetinfo market_gun "weapon_awp"
+		es_xsetinfo market_gun_name "AWP"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 3) do
+	{
+		es_xset market_price 4200
+		es_xsetinfo market_gun "weapon_sg550"
+		es_xsetinfo market_gun_name "SG550"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 4) do
+	{
+		es_xset market_price 5000
+		es_xsetinfo market_gun "weapon_G3SG1"
+		es_xsetinfo market_gun_name "G3SG1"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block MgBuy
+{
+	es_xset market_slot 1
+	if (server_var(_popup_choice) == 1) do
+	{
+		es_xset market_price 5725
+		es_xsetinfo market_gun "weapon_m249"
+		es_xsetinfo market_gun_name "Noob Cannon"
+		es_doblock marketmod/BuyGun
+	}
+	if (server_var(_popup_choice) == 9) do
+	{
+		es popup send MarketMenu server_var(_popup_userid)
+	}
+}
+
+block BuyGun
+{
+	ifx true(market_freeguns) do
+	{
+		es_xset market_price 0
+	}
+	es playerget isdead market_dead server_var(_popup_userid)
+	if (server_var(market_dead) == 0) do
+	{
+		es playerget cash market_playermoney server_var(_popup_userid)
+		if (server_var(market_playermoney) < server_var(market_price)) do
+		{
+			es_tell server_var(_popup_userid) #green [MM] You cannot afford that.
+		}
+		else do
+		{
+			es_math market_playermoney - server_var(market_price)
+			es playerset cash server_var(_popup_userid) server_var(market_playermoney)
+			es est_DropWeapon server_var(_popup_userid) server_var(market_slot)
+			es_give server_var(_popup_userid) server_var(market_gun)
+			es_tell server_var(_popup_userid) #green [MM] server_var(market_gun_name) has been purchased for server_var(market_price)
+		}
+	}
+	else do
+	{
+		es_tell server_var(_popup_userid) #green [MM] Dead people have no use for guns...
+	}
+}
+
+block unload
+{
+	es echo MarketMod unloading...
+	es_msg #green [MM] MarketMod deactivated.
+}
+
