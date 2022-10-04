@@ -1,0 +1,134 @@
+block config
+{
+   es_xset as_spawn_command "!aspawn" // Command to spawn (Default: "!aspawn")
+   es_xset as_buy_command "!buyspawn" // Command to buy a respawn (Default: "!buyspawn")
+   es_xset as_max_lives 3 // Max respawns (Default: 3)
+   es_xset as_life_cost 5000 // Cost to buy an extra life (Default: 5000)
+   es_xset as_starting_respawns 1 // Respawns to give new players for free (Default: 1)
+}
+
+// A-Spawn
+// Versiom: 0.9.5
+// Commands: "!aspawn" to spawn  and "!buyspawn" to buy a respawn (both can be changed)
+// Required: BOTH eventscripts AND es tools
+
+block load
+{
+	es_xset as_exists 0
+	es_xset as_user 0
+	es_xset as_respawns 0
+	es_xset as_cash 0
+	es_xset as_dead 0
+	es_xset as_temp 0
+
+	es_setinfo aspawn_version 0.9.5
+	es_makepublic aspawn_version
+	
+	es_doblock aspawn/config
+
+	es_exists as_exists command server_var(as_spawn_command)
+	ifx false(as_exists) do
+	{
+		es_regsaycmd server_var(as_spawn_command) aspawn/spawnplayer "Say command to respawn"
+	}
+	es_exists as_exists command server_var(as_buy_command)
+	ifx false(as_exists) do
+	{
+		es_regsaycmd server_var(as_buy_command) aspawn/buyspawn "Say command to buy a respawn"
+	}
+
+	es_xkeygroupdelete aspawn
+	es_xkeygroupload aspawn |aspawn
+}
+
+event player_activate
+{
+	es est_GetSteam as_user event_var(userid)
+	if (server_var(as_user) != "BOT") do
+	{
+		es_exists as_exists key aspawn server_var(as_user)
+		ifx false(as_exists) do
+		{
+			es_keycreate aspawn server_var(as_user)
+			es_keysetvalue aspawn server_var(as_user) Respawns server_var(as_starting_respawns)
+			es_xkeygroupsave aspawn |aspawn
+		}
+	}
+
+}
+
+event player_spawn
+{
+	es est_GetSteam as_user event_var(userid)
+	if (server_var(as_user) != "BOT") do
+	{
+		es_exists as_exists key aspawn server_var(as_user)
+		ifx false(as_exists) do
+		{
+			es_keycreate aspawn server_var(as_user)
+			es_keysetvalue aspawn server_var(as_user) Respawns server_var(as_starting_respawns)
+			es_xkeygroupsave aspawn |aspawn
+		}
+	}
+
+}
+
+event round_end
+{
+   es_xkeygroupsave aspawn |aspawn
+}
+
+block buyspawn
+{
+	es_getcmduserid as_temp
+	es est_GetSteam as_user server_var(as_temp)
+
+	es playerget cash as_cash server_var(as_user)
+	if (server_var(as_cash) >= server_var(as_life_cost)) do
+	{
+		es_keygetvalue as_respawns aspawn server_var(as_user) Respawns
+		if (server_var(as_respawns) < server_var(as_max_lives)) do
+		{
+			es_math as_respawns + 1
+			es_keysetvalue aspawn server_var(as_user) Respawns server_var(as_respawns)
+			es_tell server_var(as_temp) [AS] You bought a respawn. You now have server_var(as_respawns) respawns.
+			es_math as_cash - server_var(as_life_cost)
+			es playerset cash server_var(as_user) server_var(as_cash)
+		}
+		else do
+		{
+			es_tell server_var(as_temp) [AS] You have the maximum number of respawns already.
+		}
+	}
+   else do
+	{
+		es_tell server_var(as_temp) [AS] You do not have enough money. You need server_var(as_life_cost) dollars to buy a respawn.
+	}
+}
+
+block spawnplayer
+{
+	es_getcmduserid as_temp
+	es est_GetSteam as_user server_var(as_temp)
+
+	es playerget isdead as_dead server_var(as_user)
+	ifx true(as_dead) do
+	{
+		es_keygetvalue as_respawns aspawn server_var(as_user) Respawns
+		ifx true(as_respawns) do
+		{
+			es_math as_respawns - 1
+			es_keysetvalue aspawn server_var(as_user) Respawns server_var(as_respawns)
+			es est_spawn server_var(as_user)
+			es_tell server_var(as_temp) [AS] You have server_var(as_respawns) respawns remaining.
+		}
+		else do
+		{
+			es_tell server_var(as_temp) [AS] You have zero respawns remaining.
+		}
+	}
+	else do
+	{
+		es_tell server_var(as_temp) [AS] You must be dead to respawn.
+	}
+}
